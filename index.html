@@ -15,14 +15,14 @@
         <h1 class="code-block">
             !pip install flask flask-socketio pyngrok <br>
             !pip install flask flask-socketio eventlet <br>
-            !pip install pyngrok
+            !pip install pyngrok <br>
         </h1>
     </div>
     <br>
     <div class="1">
         <h1 class="code-block">
             !ngrok authtoken 2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz <br>
-            !ngrok restart
+            !ngrok restart <br>
         </h1>
     </div>
     <div class="1">
@@ -205,176 +205,161 @@
                   background: #000;<br>
                   padding: 10px;<br>
                   border-radius: 20px;<br>
-                  color: #ffffff;<br>
+                  max-width: 80%;<br>
                   position: relative;<br>
+                  border-top-left-radius: 0;<br>
                 }<br>
-                .message-content::before {<br>
-                  content: '';<br>
+                .message-content::after {<br>
+                  content: &quot;&quot;;<br>
                   position: absolute;<br>
                   top: 0;<br>
                   left: -10px;<br>
                   width: 0;<br>
                   height: 0;<br>
                   border-top: 10px solid transparent;<br>
-                  border-bottom: 10px solid transparent;<br>
                   border-right: 10px solid #000;<br>
-                }<br>
-                .message-content.system-message {<br>
-                  background: linear-gradient(135deg, #fef7da, #1e1e1e);<br>
-                  color: #ffffff;<br>
-                  font-weight: bold;<br>
-                  display: flex;<br>
-                  justify-content: center;<br>
-                  align-items: center;<br>
-                }<br>
-                .message-content.system-message::before {<br>
-                  display: none;<br>
                 }<br>
               &lt;/style&gt;<br>
             &lt;/head&gt;<br>
             &lt;body&gt;<br>
-              &lt;div id=&quot;header&quot;&gt;Spider-Chat&lt;/div&gt;<br>
-              &lt;div id=&quot;hamburger&quot;&gt;<br>
-                &lt;div class=&quot;line line1&quot;&gt;&lt;/div&gt;<br>
-                &lt;div class=&quot;line line2&quot;&gt;&lt;/div&gt;<br>
-              &lt;/div&gt;<br>
-              &lt;div class=&quot;navbar&quot;&gt;<br>
-                &lt;h2&gt;User List&lt;/h2&gt;<br>
-                &lt;ul id=&quot;userList&quot;&gt;&lt;/ul&gt;<br>
-              &lt;/div&gt;<br>
-              &lt;div class=&quot;chat-container&quot;&gt;<br>
-                &lt;div id=&quot;messages&quot;&gt;&lt;/div&gt;<br>
-                &lt;div class=&quot;input-container&quot;&gt;<br>
-                  &lt;input id=&quot;myMessage&quot; placeholder=&quot;Enter your message...&quot;&gt;&lt;/input&gt;<br>
-                  &lt;button id=&quot;sendbutton&quot;&gt;Send&lt;/button&gt;<br>
-                &lt;/div&gt;<br>
-              &lt;/div&gt;<br>
-              &lt;script&gt;<br>
-                const socket = io();<br>
-                const myMessage = document.getElementById(&#39;myMessage&#39;);<br>
-                const sendButton = document.getElementById(&#39;sendbutton&#39;);<br>
-                const messages = document.getElementById(&#39;messages&#39;);<br>
-                const hamburger = document.getElementById(&#39;hamburger&#39;);<br>
-                const navbar = document.querySelector(&#39;.navbar&#39;);<br>
-                const userList = document.getElementById(&#39;userList&#39;);<br>
-                let username = &#39;&#39;;<br>
-                function promptForUsername() {<br>
-                  username = prompt(&#39;Please enter your name:&#39;);<br>
-                  while (!username) {<br>
-                    username = prompt(&#39;Name is required. Please enter your name:&#39;);<br>
-                  }<br>
-                  socket.emit(&#39;set_username&#39;, username);<br>
-                }<br>
-                hamburger.addEventListener(&#39;click&#39;, () =&gt; {<br>
-                  hamburger.classList.toggle(&#39;open&#39;);<br>
-                  navbar.classList.toggle(&#39;open&#39;);<br>
+            &lt;div class=&quot;chat-container&quot;&gt;<br>
+            &lt;div id=&quot;header&quot;&gt;Spider Chat&lt;/div&gt;<br>
+            &lt;div id=&quot;hamburger&quot;&gt;<br>
+            &lt;div class=&quot;line line1&quot;&gt;&lt;/div&gt;<br>
+            &lt;div class=&quot;line line2&quot;&gt;&lt;/div&gt;<br>
+            &lt;/div&gt;<br>
+            &lt;div class=&quot;navbar&quot;&gt;<br>
+            &lt;h2&gt;Connected Users&lt;/h2&gt;<br>
+            &lt;ul id=&quot;userList&quot;&gt;&lt;/ul&gt;<br>
+            &lt;/div&gt;<br>
+            &lt;div id=&quot;messages&quot;&gt;&lt;/div&gt;<br>
+            &lt;div class=&quot;input-container&quot;&gt;<br>
+            &lt;input type=&quot;text&quot; id=&quot;myMessage&quot; placeholder=&quot;Type your message here&quot; /&gt;<br>
+            &lt;button id=&quot;sendbutton&quot;&gt;Send&lt;/button&gt;<br>
+            &lt;/div&gt;<br>
+            &lt;/div&gt;<br>
+            &lt;script&gt;<br>
+            document.addEventListener(&quot;DOMContentLoaded&quot;, function () {<br>
+              var socket = io.connect(&#39;http://localhost:5000&#39;);<br><br>
+              const hamburger = document.getElementById(&#39;hamburger&#39;);<br>
+              const navbar = document.querySelector(&#39;.navbar&#39;);<br>
+              const userList = document.getElementById(&#39;userList&#39;);<br><br>
+              hamburger.addEventListener(&#39;click&#39;, function () {<br>
+                navbar.classList.toggle(&#39;open&#39;);<br>
+                hamburger.classList.toggle(&#39;open&#39;);<br>
+              });<br><br>
+              function addMessage(message) {<br>
+                var messagesDiv = document.getElementById(&quot;messages&quot;);<br>
+                var newMessage = document.createElement(&quot;div&quot;);<br>
+                newMessage.className = &quot;message&quot;;<br>
+                newMessage.innerHTML =<br>
+                  &#39;&lt;div class=&quot;profile-pic&quot;&gt;&lt;img src=&quot;https://i.pravatar.cc/40&quot; alt=&quot;Profile Picture&quot;&gt;&lt;/div&gt;&#39; +<br>
+                  &#39;&lt;div class=&quot;message-content&quot;&gt;&#39; + message + &#39;&lt;/div&gt;&#39;;<br>
+                messagesDiv.appendChild(newMessage);<br>
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;<br>
+              }<br><br>
+              socket.on(&quot;connect&quot;, function () {<br>
+                var username = prompt(&quot;Enter your username:&quot;);<br>
+                socket.emit(&quot;join&quot;, username);<br>
+              });<br><br>
+              socket.on(&quot;message&quot;, function (data) {<br>
+                addMessage(data);<br>
+              });<br><br>
+              document.getElementById(&quot;sendbutton&quot;).addEventListener(&quot;click&quot;, function () {<br>
+                var messageInput = document.getElementById(&quot;myMessage&quot;);<br>
+                var message = messageInput.value;<br>
+                socket.emit(&quot;send_message&quot;, message);<br>
+                messageInput.value = &quot;&quot;;<br>
+              });<br><br>
+              socket.on(&quot;user_list&quot;, function (users) {<br>
+                userList.innerHTML = &quot;&quot;;<br>
+                users.forEach(function (user) {<br>
+                  var li = document.createElement(&quot;li&quot;);<br>
+                  li.textContent = user;<br>
+                  userList.appendChild(li);<br>
                 });<br>
-                socket.on(&#39;message&#39;, (msg) =&gt; {<br>
-                  const item = document.createElement(&#39;div&#39;);<br>
-                  item.classList.add(&#39;message&#39;);<br>
-                  item.innerHTML = `<div class=&quot;profile-pic&quot;&gt;&lt;img src=&quot;https://via.placeholder.com/40&quot;&gt;&lt;/div&gt;<br>
-                  <div class=&quot;message-content&quot;&gt;${msg.username || &#39;System&#39;}: ${msg.message}</div>`;<br>
-                  messages.appendChild(item);<br>
-                  messages.scrollTop = messages.scrollHeight;<br>
-                });<br>
-                sendButton.addEventListener(&#39;click&#39;, () =&gt; {<br>
-                  socket.emit(&#39;message&#39;, {<br>
-                    username,<br>
-                    message: myMessage.value,<br>
-                  });<br>
-                  myMessage.value = &#39;&#39;;<br>
-                });<br>
-                myMessage.addEventListener(&#39;keypress&#39;, (event) =&gt; {<br>
-                  if (event.key === &#39;Enter&#39;) {<br>
-                    sendButton.click();<br>
-                  }<br>
-                });<br>
-                socket.on(&#39;user_list&#39;, (users) =&gt; {<br>
-                  userList.innerHTML = &#39;&#39;;<br>
-                  users.forEach((user) =&gt; {<br>
-                    const item = document.createElement(&#39;li&#39;);<br>
-                    item.textContent = user;<br>
-                    userList.appendChild(item);<br>
-                  });<br>
-                });<br>
-                promptForUsername();<br>
-              &lt;/script&gt;<br>
+              });<br>
+            });<br>
+            &lt;/script&gt;<br>
             &lt;/body&gt;<br>
-            &lt;/html&gt;
-            '''
-                      
-users = {}
-user_order = []
-
-@app.route('/')
-def chat():
-    return chat_html
-
-@socketio.on('connect')
-def handle_connect():
-    session['id'] = request.sid
-    user_order.append(request.sid)
-    print(f'{request.sid} connected')
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    user_id = session.get('id')
-    if user_id in users:
-        print(f'{users[user_id]["username"]} disconnected')
-        del users[user_id]
-        user_order.remove(user_id)
-        emit_user_list()
-
-@socketio.on('set_username')
-def set_username(data):
-    user_id = session.get('id')
-    if user_id:
-        username = data['username']
-        users[user_id] = {
-            'username': username
-        }
-        print(f'{username} has joined the chat')
-        emit_user_list()
-
-@socketio.on('message')
-def handle_message(data):
-    user_id = session.get('id')
-    username = users.get(user_id, {}).get('username', 'Unknown')
-
-    message_data = {
-        'username': username,
-        'msg': data['msg'],
-        'align': 'right' if data['to'] else 'left',
-        'to': None
-    }
-
-    if data['to']:
-        recipient_id = data['to']
-        recipient_username = users.get(recipient_id, {}).get('username', 'Unknown')
-        message_data['to'] = recipient_username
-        emit('message', message_data, room=recipient_id)
-        emit('message', message_data, room=user_id)
-    else:
-        send(message_data, broadcast=True)
-
-    # Store the message in chat history
-    chat_history.append(message_data)
-
-@socketio.on('get_chat_history')
-def handle_get_chat_history():
-    emit('chat_history', {'messages': chat_history})
-
-def emit_user_list():
-    user_list = [{'id': user_id, 'username': users[user_id]['username']} for user_id in users]
-    emit('user_list', {'users': user_list}, broadcast=True)
-
-# Start ngrok to expose the app
-url = ngrok.connect(5000)
-print(' * Tunnel URL:', url)
-
-if __name__ == '__main__':
-    socketio.run(app, port=5000, allow_unsafe_werkzeug=True)
+            &lt;/html&gt;<br>
+            '''<br><br>
+            # Route for the chat page<br>
+            @app.route('/')<br>
+            def chat():<br>
+                return chat_html<br><br>
+            # Handle user connection<br>
+            @socketio.on('connect')<br>
+            def handle_connect():<br>
+                print('Client connected:', request.sid)<br><br>
+            # Handle user disconnection<br>
+            @socketio.on('disconnect')<br>
+            def handle_disconnect():<br>
+                print('Client disconnected:', request.sid)<br><br>
+            # Handle incoming messages<br>
+            @socketio.on('send_message')<br>
+            def handle_send_message(message):<br>
+                print('Received message:', message)<br>
+                chat_history.append(message)<br>
+                emit('message', message, broadcast=True)<br><br>
+            # Handle user joining<br>
+            @socketio.on('join')<br>
+            def handle_join(username):<br>
+                session['username'] = username<br>
+                print(f'{username} joined the chat')<br>
+                emit('message', f'{username} joined the chat', broadcast=True)<br>
+                emit('user_list', list(session.keys()), broadcast=True)<br><br>
+            # Start the Flask app with SocketIO<br>
+            if __name__ == '__main__':<br>
+                # Set up ngrok tunnel<br>
+                public_url = ngrok.connect(5000)<br>
+                print('Public URL:', public_url)<br>
+                socketio.run(app, host='0.0.0.0', port=5000)<br>
         </h1>
     </div>
+    <br>
+    <div class="1">
+        <h1 class="code-block">
+            server.py <br>
+        </h1>
+    </div>
+    <br>
+    <div class="1">
+        <h1 class="code-block">
+            !ngrok authtoken 2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz <br>
+        </h1>
+    </div>
+    <div class="1">
+        <h1 class="code-block">
+            !pip install pyngrok <br>
+        </h1>
+    </div>
+    <div class="1">
+        <h1 class="code-block">
+            from pyngrok import ngrok <br>
+            ngrok.kill() <br>
+        </h1>
+    </div>
+    <div class="1">
+        <h1 class="code-block">
+            !pip install pyngrok <br>
+            from pyngrok import ngrok <br>
+            ngrok.set_auth_token('2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz') <br>
+            public_url = ngrok.connect(5000) <br>
+            public_url <br>
+        </h1>
+    </div>
+    <br>
+    <div class="1">
+        <h1 class="code-block">
+            !pip install pyngrok <br>
+            from pyngrok import ngrok <br>
+            ngrok.kill() <br>
+            ngrok.set_auth_token('2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz') <br>
+            public_url = ngrok.connect(5000) <br>
+            public_url <br>
+        </h1>
+    </div>
+    <br>
 </body>
 </html>
