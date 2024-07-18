@@ -40,7 +40,7 @@
             chat_history = []<br><br>
             # HTML template for the chat<br>
             chat_html = '''<br>
-            "&lt;!DOCTYPE html&gt;<br>
+            &lt;!DOCTYPE html&gt;<br>
             &lt;html&gt;<br>
             &lt;head&gt;<br>
               &lt;meta charset=&quot;UTF-8&quot;&gt;<br>
@@ -303,6 +303,78 @@
             &lt;/body&gt;<br>
             &lt;/html&gt;
             '''
+                      
+users = {}
+user_order = []
+
+@app.route('/')
+def chat():
+    return chat_html
+
+@socketio.on('connect')
+def handle_connect():
+    session['id'] = request.sid
+    user_order.append(request.sid)
+    print(f'{request.sid} connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    user_id = session.get('id')
+    if user_id in users:
+        print(f'{users[user_id]["username"]} disconnected')
+        del users[user_id]
+        user_order.remove(user_id)
+        emit_user_list()
+
+@socketio.on('set_username')
+def set_username(data):
+    user_id = session.get('id')
+    if user_id:
+        username = data['username']
+        users[user_id] = {
+            'username': username
+        }
+        print(f'{username} has joined the chat')
+        emit_user_list()
+
+@socketio.on('message')
+def handle_message(data):
+    user_id = session.get('id')
+    username = users.get(user_id, {}).get('username', 'Unknown')
+
+    message_data = {
+        'username': username,
+        'msg': data['msg'],
+        'align': 'right' if data['to'] else 'left',
+        'to': None
+    }
+
+    if data['to']:
+        recipient_id = data['to']
+        recipient_username = users.get(recipient_id, {}).get('username', 'Unknown')
+        message_data['to'] = recipient_username
+        emit('message', message_data, room=recipient_id)
+        emit('message', message_data, room=user_id)
+    else:
+        send(message_data, broadcast=True)
+
+    # Store the message in chat history
+    chat_history.append(message_data)
+
+@socketio.on('get_chat_history')
+def handle_get_chat_history():
+    emit('chat_history', {'messages': chat_history})
+
+def emit_user_list():
+    user_list = [{'id': user_id, 'username': users[user_id]['username']} for user_id in users]
+    emit('user_list', {'users': user_list}, broadcast=True)
+
+# Start ngrok to expose the app
+url = ngrok.connect(5000)
+print(' * Tunnel URL:', url)
+
+if __name__ == '__main__':
+    socketio.run(app, port=5000, allow_unsafe_werkzeug=True)
         </h1>
     </div>
 </body>
