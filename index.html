@@ -284,82 +284,80 @@
             &lt;/body&gt;<br>
             &lt;/html&gt;<br>
             '''<br><br>
-            # Route for the chat page<br>
-            @app.route('/')<br>
-            def chat():<br>
-                return chat_html<br><br>
-            # Handle user connection<br>
-            @socketio.on('connect')<br>
-            def handle_connect():<br>
-                print('Client connected:', request.sid)<br><br>
-            # Handle user disconnection<br>
-            @socketio.on('disconnect')<br>
-            def handle_disconnect():<br>
-                print('Client disconnected:', request.sid)<br><br>
-            # Handle incoming messages<br>
-            @socketio.on('send_message')<br>
-            def handle_send_message(message):<br>
-                print('Received message:', message)<br>
-                chat_history.append(message)<br>
-                emit('message', message, broadcast=True)<br><br>
-            # Handle user joining<br>
-            @socketio.on('join')<br>
-            def handle_join(username):<br>
-                session['username'] = username<br>
-                print(f'{username} joined the chat')<br>
-                emit('message', f'{username} joined the chat', broadcast=True)<br>
-                emit('user_list', list(session.keys()), broadcast=True)<br><br>
-            # Start the Flask app with SocketIO<br>
-            if __name__ == '__main__':<br>
-                # Set up ngrok tunnel<br>
-                public_url = ngrok.connect(5000)<br>
-                print('Public URL:', public_url)<br>
-                socketio.run(app, host='0.0.0.0', port=5000)<br>
+users = {}<br>
+user_order = []<br>
+<br>
+@app.route('/')<br>
+def chat():<br>
+    return chat_html<br>
+<br>
+@socketio.on('connect')<br>
+def handle_connect():<br>
+    session['id'] = request.sid<br>
+    user_order.append(request.sid)<br>
+    print(f'{request.sid} connected')<br>
+<br>
+@socketio.on('disconnect')<br>
+def handle_disconnect():<br>
+    user_id = session.get('id')<br>
+    if user_id in users:<br>
+        print(f'{users[user_id]["username"]} disconnected')<br>
+        del users[user_id]<br>
+        user_order.remove(user_id)<br>
+        emit_user_list()<br>
+<br>
+@socketio.on('set_username')<br>
+def set_username(data):<br>
+    user_id = session.get('id')<br>
+    if user_id:<br>
+        username = data['username']<br>
+        users[user_id] = {<br>
+            'username': username<br>
+        }<br>
+        print(f'{username} has joined the chat')<br>
+        emit_user_list()<br>
+<br>
+@socketio.on('message')<br>
+def handle_message(data):<br>
+    user_id = session.get('id')<br>
+    username = users.get(user_id, {}).get('username', 'Unknown')<br>
+<br>
+    message_data = {<br>
+        'username': username,<br>
+        'msg': data['msg'],<br>
+        'align': 'right' if data['to'] else 'left',<br>
+        'to': None<br>
+    }<br>
+<br>
+    if data['to']:<br>
+        recipient_id = data['to']<br>
+        recipient_username = users.get(recipient_id, {}).get('username', 'Unknown')<br>
+        message_data['to'] = recipient_username<br>
+        emit('message', message_data, room=recipient_id)<br>
+        emit('message', message_data, room=user_id)<br>
+    else:<br>
+        send(message_data, broadcast=True)<br>
+<br>
+    # Store the message in chat history<br>
+    chat_history.append(message_data)<br>
+<br>
+@socketio.on('get_chat_history')<br>
+def handle_get_chat_history():<br>
+    emit('chat_history', {'messages': chat_history})<br>
+<br>
+def emit_user_list():<br>
+    user_list = [{'id': user_id, 'username': users[user_id]['username']}] for user_id in users]<br>
+    emit('user_list', {'users': user_list}, broadcast=True)<br>
+<br>
+# Start ngrok to expose the app<br>
+url = ngrok.connect(5000)<br>
+print(' * Tunnel URL:', url)<br>
+<br>
+if __name__ == '__main__':<br>
+    socketio.run(app, port=5000, allow_unsafe_werkzeug=True)<br>
         </h1>
     </div>
     <br>
-    <div class="1">
-        <h1 class="code-block">
-            server.py <br>
-        </h1>
-    </div>
-    <br>
-    <div class="1">
-        <h1 class="code-block">
-            !ngrok authtoken 2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz <br>
-        </h1>
-    </div>
-    <div class="1">
-        <h1 class="code-block">
-            !pip install pyngrok <br>
-        </h1>
-    </div>
-    <div class="1">
-        <h1 class="code-block">
-            from pyngrok import ngrok <br>
-            ngrok.kill() <br>
-        </h1>
-    </div>
-    <div class="1">
-        <h1 class="code-block">
-            !pip install pyngrok <br>
-            from pyngrok import ngrok <br>
-            ngrok.set_auth_token('2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz') <br>
-            public_url = ngrok.connect(5000) <br>
-            public_url <br>
-        </h1>
-    </div>
-    <br>
-    <div class="1">
-        <h1 class="code-block">
-            !pip install pyngrok <br>
-            from pyngrok import ngrok <br>
-            ngrok.kill() <br>
-            ngrok.set_auth_token('2gx07k2dnZkMR8dqD4nxLvyOmLJ_6ZUVQ6exmRovj113uQJXz') <br>
-            public_url = ngrok.connect(5000) <br>
-            public_url <br>
-        </h1>
-    </div>
     <br>
 </body>
 </html>
